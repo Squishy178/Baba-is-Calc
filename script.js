@@ -13,38 +13,7 @@ function newObject(x,y,type){
             type:type,
         });
 }
-const objectData = {
-    wall:{
-        output : function(input){},
-        art : "wall", static : true,
-        pushable : false,
-        TYPE : "object",
-    },
-    goal:{
-        output : function(input){},
-        art : "goal", static : false,
-        pushable : true,
-        TYPE : "object",
-    },
-    add:{
-        output : function(input){},
-        art : "goal", static : false,
-        pushable : true,
-        TYPE : "operator",
-    },
-    number1:{
-        output : function(input){},
-        art : "goal", static : false,
-        pushable : true,
-        TYPE : "value",
-    },
-    is:{
-        output : function(input){},
-        art : "goal", static : false,
-        pushable : true,
-        TYPE : "logic",
-    },
-}
+
 const FPS = 60;
 function lerp(start, end, t){
     return start + (end - start) * t;
@@ -65,6 +34,46 @@ const preloadImages = [
     "images/goal2.png",
     "images/goal3.png",
     "images/wall1.png",
+
+    "images/number1",
+    "images/number2",
+    "images/number3",
+
+    "images/number11",
+    "images/number12",
+    "images/number13",
+
+    "images/number21",
+    "images/number22",
+    "images/number23",
+
+    "images/number31",
+    "images/number32",
+    "images/number33",
+
+    "images/number41",
+    "images/number42",
+    "images/number43",
+
+    "images/number51",
+    "images/number52",
+    "images/number53",
+    
+    "images/number61",
+    "images/number62",
+    "images/number63",
+
+    "images/number71",
+    "images/number72",
+    "images/number73",
+
+    "images/number81",
+    "images/number82",
+    "images/number83",
+
+    "images/number91",
+    "images/number92",
+    "images/number93",
 ]
 // Keys and all that garbage
 const keys = {};
