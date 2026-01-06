@@ -90,6 +90,9 @@ window.addEventListener('keyup', (e) => {
 function collide(x1,y1,x2,y2){
     return x1==x2 && y1==y2;
 }
+function getObjectAt(x, y) {
+    return objects.find(o => o.x === x && o.y === y);
+}
 function tick(){
     if (keysDown['ArrowUp']) player.y -= 1;
     if (keysDown['ArrowDown']) player.y += 1;
@@ -101,13 +104,16 @@ function tick(){
     if (Math.abs(player.vX-player.x) < 0.05) player.vX = player.x
     if (Math.abs(player.vY-player.y) < 0.05) player.vY = player.y
     
-    for (o of objects){
+    let o = getObjectAt(player.x,player.y);
+    if (o){
         let oData = objectData[o.type];
         if (collide(player.x,player.y,o.x,o.y)){
             if (oData.pushable) {
                 o.x += player.x-Math.round(player.vX);
                 o.y += player.y-Math.round(player.vY);
-                for (o2 of objects){
+                let o2 = getObjectAt(o.x,o.y);
+                if (o2){
+                
                     if (collide(o2.x,o2.y,o.x,o.y) && o != o2){
                         player.x = Math.round(player.vX);
                         player.vX = Math.round(player.vX);
@@ -119,9 +125,7 @@ function tick(){
                         o.y = Math.round(o.vY);
                         o.vY = Math.round(o.vY);
                     }
-                }
-                
-        
+                } 
             }else{
                 player.x = Math.round(player.vX);
                 player.vX = Math.round(player.vX);
@@ -140,8 +144,53 @@ function tick(){
     for (i in keysDown){
         keysDown[i]=false;
     }
+    checkEquations();
     draw();
     
+}
+function checkEquations(){
+    for (let o of objects){
+        let oData = objectData[o.type]
+        let length = 1;
+        if (oData.TYPE == "number"){
+            value = oData.val;
+        }else{
+            value = 0;
+        }
+        let operation = null;
+        while (getObjectAt(o.x + length,o.y)){
+            let o2 = getObjectAt(o.x + length,o.y);
+            let o2Data = objectData[o2.type];
+
+            if (o2Data.TYPE == "wall" || o2Data.TYPE == "object"){
+                break;
+            }else if (o2Data.TYPE == "value"){
+                value = operation(oData.val,o2Data.val);
+            }else if (o2Data.TYPE == "operation"){
+                operation = o2Data.output;
+            }
+        }
+        console.log(value);
+    }
+    // ye olde script that was unfinished 
+    
+    // let equations = [];
+    // for (let y = 0; y < gridHeight; y++) {
+    //     for (let x = 0; x < gridWidth; x++) {
+    //         for (o of objects){
+    //             if (collide(o.x,o.y,x,y)){
+    //                 equations.push({x:x,y:y,return:})
+    //             }
+    //         }
+    //     }
+    // }
+    // for (let i = 0; i < equations.length; i++){
+    //     for (let ii = 0; ii < equations[i].length; ii++){
+    //         if (o.x == equations[i][ii].x && o.y == equations[i][ii]){
+                
+    //         }
+    //     }
+    // }
 }
 
 function draw(){
@@ -167,7 +216,7 @@ function init(){
     }
     newObject(3,3,"wall");
 
-    newObject(5,3,"goal");
+    newObject(5,3,"number1");
     setInterval(tick,1000/FPS);
     // setInterval(function(){
     //     player.x += 1;

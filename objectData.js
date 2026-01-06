@@ -1,33 +1,31 @@
 const objectData = {
     wall:{
-        output : function(input){},
         art : "wall", static : true,
         pushable : false,
-        TYPE : "object",
+        TYPE : "wall",
     },
     goal:{
-        output : function(input){},
         art : "goal", static : false,
         pushable : true,
         TYPE : "object",
     },
     add:{
-        output : function(input){},
+        output : function(i1,i2){return i1 + i2;},
         art : "goal", static : false,
         pushable : true,
         TYPE : "operator",
     },
     is:{
-        output : function(input){},
         art : "goal", static : false,
         pushable : true,
         TYPE : "logic",
     },
 
     number1:{
-        output : function(input){},
-        art : "number", static : false,
+        art : "number1", static : false,
         pushable : true,
         TYPE : "value",
+        val: 1,
     },
+
 }
