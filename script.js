@@ -13,7 +13,42 @@ function newObject(x,y,type){
             type:type,
         });
 }
+const objectData = {
+    wall:{
+        output : function(input){},
+        art : "wall", static : true,
+        pushable : false,
+        TYPE : "object",
+    },
+    goal:{
+        output : function(input){},
+        art : "goal", static : false,
+        pushable : true,
+        TYPE : "object",
+    },
+    add:{
+        output : function(input){},
+        art : "goal", static : false,
+        pushable : true,
+        TYPE : "operator",
+    },
+    number1:{
+        output : function(input){},
+        art : "goal", static : false,
+        pushable : true,
+        TYPE : "value",
+    },
+    is:{
+        output : function(input){},
+        art : "goal", static : false,
+        pushable : true,
+        TYPE : "logic",
+    },
+}
 const FPS = 60;
+function lerp(start, end, t){
+    return start + (end - start) * t;
+};
 // Images. Javascript seems to hate them but whatever
 var loadedImages={};
 function preloadImage(url){
@@ -25,10 +60,11 @@ function getImage(url) {
     return loadedImages[url];
 }
 const preloadImages = [
-    "babababa.png",
-    "goal1.png",
-    "goal2.png",
-    "goal3.png",
+    "images/babababa.png",
+    "images/goal1.png",
+    "images/goal2.png",
+    "images/goal3.png",
+    "images/wall1.png",
 ]
 // Keys and all that garbage
 const keys = {};
@@ -57,8 +93,9 @@ function tick(){
     if (Math.abs(player.vY-player.y) < 0.05) player.vY = player.y
     
     for (o of objects){
+        let oData = objectData[o.type];
         if (collide(player.x,player.y,o.x,o.y)){
-            if (true) {
+            if (oData.pushable) {
                 o.x += player.x-Math.round(player.vX);
                 o.y += player.y-Math.round(player.vY);
                 for (o2 of objects){
@@ -90,34 +127,38 @@ function tick(){
         o.vY = lerp(o.vY,o.y,0.4);
     }
     
-    
-    draw();
     // Simulate the One Click. Stupid that it repeats, but works mostly
     for (i in keysDown){
         keysDown[i]=false;
     }
+    draw();
+    
 }
-function lerp(start, end, t){
-    return start + (end - start) * t;
-};
+
 function draw(){
     ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = "BLACK";
-    ctx.fillRect(0,0,256,256);
+    ctx.fillRect(0,0,288,288);
     ctx.fillStyle = "WHITE";
-    ctx.drawImage(getImage("babababa.png"),player.vX * 24,player.vY * 24,24,24);
+    
+    ctx.drawImage(getImage("images/babababa.png"),player.vX * 24,player.vY * 24,24,24);
 
     for (o of objects){
-        ctx.drawImage(getImage("goal1.png"),o.vX * 24,o.vY * 24,24,24);
+        let oData = objectData[o.type];
+        let art = "images/"+oData.art+"1.png";
+        if (!oData.static){
+           art = "images/"+oData.art+(Math.floor((Date.now()/200)%3+1))+".png";
+        }
+        ctx.drawImage(getImage(art),o.vX * 24,o.vY * 24,24,24);
     }
 }
 function init(){
     for (var i = 0; i < preloadImages.length; i++){
         preloadImage(preloadImages[i]);
     }
-    newObject(3,3,1);
+    newObject(3,3,"wall");
 
-    newObject(5,3,1);
+    newObject(5,3,"goal");
     setInterval(tick,1000/FPS);
     // setInterval(function(){
     //     player.x += 1;
