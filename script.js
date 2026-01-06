@@ -5,7 +5,16 @@ var player = {
     y:0,vY:0,
     d:0,
 }
+var objects = []
+function newObject(x,y,type){
+    objects.push(
+        {
+            x:x,y:y,vX:x,vY:y,
+            type:type,
+        });
+}
 const FPS = 60;
+// Images. Javascript seems to hate them but whatever
 var loadedImages={};
 function preloadImage(url){
     let img=new Image();
@@ -17,8 +26,11 @@ function getImage(url) {
 }
 const preloadImages = [
     "babababa.png",
+    "goal1.png",
+    "goal2.png",
+    "goal3.png",
 ]
-// Key garbage
+// Keys and all that garbage
 const keys = {};
 var keysDown= {};
 window.addEventListener('keydown', (e) => {
@@ -30,7 +42,9 @@ window.addEventListener('keyup', (e) => {
     keys[e.code] = false;
     keysDown[e.code] = false;
 });
-
+function collide(x1,y1,x2,y2){
+    return x1==x2 && y1==y2;
+}
 function tick(){
     if (keysDown['ArrowUp']) player.y -= 1;
     if (keysDown['ArrowDown']) player.y += 1;
@@ -39,9 +53,48 @@ function tick(){
 
     player.vX = lerp(player.vX,player.x,0.4);
     player.vY = lerp(player.vY,player.y,0.4);
+    if (Math.abs(player.vX-player.x) < 0.05) player.vX = player.x
+    if (Math.abs(player.vY-player.y) < 0.05) player.vY = player.y
+    
+    for (o of objects){
+        if (collide(player.x,player.y,o.x,o.y)){
+            if (true) {
+                o.x += player.x-Math.round(player.vX);
+                o.y += player.y-Math.round(player.vY);
+                for (o2 of objects){
+                    if (collide(o2.x,o2.y,o.x,o.y) && o != o2){
+                        player.x = Math.round(player.vX);
+                        player.vX = Math.round(player.vX);
+                        player.y = Math.round(player.vY);
+                        player.vY = Math.round(player.vY);
+
+                        o.x = Math.round(o.vX);
+                        o.vX = Math.round(o.vX);
+                        o.y = Math.round(o.vY);
+                        o.vY = Math.round(o.vY);
+                    }
+                }
+                
+        
+            }else{
+                player.x = Math.round(player.vX);
+                player.vX = Math.round(player.vX);
+                player.y = Math.round(player.vY);
+                player.vY = Math.round(player.vY);
+            }
+            
+        }
+    }
+    for (o of objects){
+        o.vX = lerp(o.vX,o.x,0.4);
+        o.vY = lerp(o.vY,o.y,0.4);
+    }
+    
+    
     draw();
-    for (let i=0; i<keysDown;i++){
-        keysDown[i] = false;
+    // Simulate the One Click. Stupid that it repeats, but works mostly
+    for (i in keysDown){
+        keysDown[i]=false;
     }
 }
 function lerp(start, end, t){
@@ -52,13 +105,19 @@ function draw(){
     ctx.fillStyle = "BLACK";
     ctx.fillRect(0,0,256,256);
     ctx.fillStyle = "WHITE";
-    ctx.drawImage(getImage("babababa.png"),player.vX * 16,player.vY * 16,16,16);
+    ctx.drawImage(getImage("babababa.png"),player.vX * 24,player.vY * 24,24,24);
 
+    for (o of objects){
+        ctx.drawImage(getImage("goal1.png"),o.vX * 24,o.vY * 24,24,24);
+    }
 }
 function init(){
     for (var i = 0; i < preloadImages.length; i++){
         preloadImage(preloadImages[i]);
     }
+    newObject(3,3,1);
+
+    newObject(5,3,1);
     setInterval(tick,1000/FPS);
     // setInterval(function(){
     //     player.x += 1;

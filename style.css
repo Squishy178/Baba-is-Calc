@@ -1,0 +1,10 @@
+body {
+    /* Prevents scroll bars and scrolling */
+    overflow: hidden;
+    
+    /* Prevents "bounce" effects on mobile */
+    overscroll-behavior: none; 
+    
+    /* Prevents long-press context menus on some devices */
+    touch-action: none;
+}
