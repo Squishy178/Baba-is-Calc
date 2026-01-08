@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baba Is Calc</title>
+
+    <script>
+        // Stolen code for error fixing on Chromebook
+        window.onerror = function(msg, url, linenumber) {
+            alert('Error message: ' + msg + '\nURL: ' + url + '\nLine Number: ' + linenumber);
+            return true; // Prevents the default browser error handling (e.g., logging to the console)
+        };
+    </script>
 </head>
 <body >
     <canvas id = "canvas" width = "288" height = "288" style = "width:512px;height:512px;border-color: black;border-width:1x;border-style: solid; image-rendering: pixelated;"></canvas>

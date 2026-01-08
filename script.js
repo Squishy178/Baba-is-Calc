@@ -44,7 +44,6 @@ const preloadImages = [
     "images/goal.png",
     "images/wall.png",
     "images/numbers.png",
-    "images/win.png",
 ];
 
 
@@ -194,7 +193,7 @@ function init() {
     addRule('goal', 'push');
     addRule('wall', 'stop');
 
-    newObject(3, 5, 'win');
+    //newObject(3, 5, 'win');
 
     // Promise stuff for image loading BEFORE running the game.
     Promise.all(preloadImages.map(preloadImage))
