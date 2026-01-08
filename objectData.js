@@ -1,31 +1,41 @@
 const objectData = {
-    wall:{
-        art : "wall", static : true,
-        pushable : false,
-        TYPE : "wall",
+    baba: {
+        art : "babababa",
+        TYPE : "noun",
     },
-    goal:{
-        art : "goal", static : false,
-        pushable : true,
-        TYPE : "object",
+    wall: {
+        art : "wall",
+        TYPE : "noun",
     },
-    add:{
+    goal: {
+        art : "goal",
+        TYPE : "noun",
+    },
+    win: {
+        art : "win",
+        TYPE : "attribute",
+    },
+    push: {
+        art : "push",
+        TYPE : "attribute",
+    },
+    stop: {
+        art: "stop",
+        TYPE: "attribute",
+    },
+    is: {
+        art : "goal",
+        TYPE : "verb",
+    },
+    add: {
         output : function(i1,i2){return i1 + i2;},
-        art : "goal", static : false,
-        pushable : true,
+        art : "goal",
         TYPE : "operator",
     },
-    is:{
-        art : "goal", static : false,
-        pushable : true,
-        TYPE : "logic",
-    },
 
-    number1:{
-        art : "number1", static : false,
-        pushable : true,
+    number1: {
+        art : "numbers",
         TYPE : "value",
         val: 1,
     },
-
 }

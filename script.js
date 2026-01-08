@@ -1,113 +1,81 @@
-const canvas = document.getElementById("canvas");
+const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext("2d");
-var player = {
-    x:0,vX:0,
-    y:0,vY:0,
-    d:0,
-}
-var objects = []
-function newObject(x,y,type){
-    objects.push(
-        {
-            x:x,y:y,vX:x,vY:y,
-            type:type,
-        });
-}
+ctx.imageSmoothingEnabled = false;
+
+const TILESIZE = 24;
+const levelw = 8;
+const levelh = 8;
+
+canvas.width = levelw * TILESIZE;
+canvas.height = levelh * TILESIZE;
+
+const UP = { x: 0, y: -1 };
+const DOWN = { x: 0, y: 1 };
+const LEFT = { x: -1, y: 0 };
+const RIGHT = { x: 1, y: 0 };
+const DIRECTIONS = [UP, DOWN, LEFT, RIGHT];
 
 const FPS = 60;
-function lerp(start, end, t){
+function lerp(start, end, t) {
     return start + (end - start) * t;
 };
+
 // Images. Javascript seems to hate them but whatever
-var loadedImages={};
-function preloadImage(url){
-    let img=new Image();
-    img.src=url;
-    loadedImages[url]=img;
+var loadedImages = {};
+let imgLoadedCount = 0;
+function preloadImage(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            resolve(img);
+        };
+        img.onerror = reject;
+        img.src = url;
+        loadedImages[url] = img;
+    });
 }
+
 function getImage(url) {
     return loadedImages[url];
 }
+
 const preloadImages = [
     "images/babababa.png",
-    "images/goal1.png",
-    "images/goal2.png",
-    "images/goal3.png",
-    "images/wall1.png",
+    "images/goal.png",
+    "images/wall.png",
+    "images/numbers.png",
+    "images/win.png",
+];
 
-    "images/number1.png",
-    "images/number2.png",
-    "images/number3.png",
 
-    "images/number11.png",
-    "images/number12.png",
-    "images/number13.png",
-
-    "images/number21.png",
-    "images/number22.png",
-    "images/number23.png",
-
-    "images/number31.png",
-    "images/number32.png",
-    "images/number33.png",
-
-    "images/number41.png",
-    "images/number42.png",
-    "images/number43.png",
-
-    "images/number51.png",
-    "images/number52.png",
-    "images/number53.png",
-    
-    "images/number61.png",
-    "images/number62.png",
-    "images/number63.png",
-
-    "images/number71.png",
-    "images/number72.png",
-    "images/number73.png",
-
-    "images/number81.png",
-    "images/number82.png",
-    "images/number83.png",
-
-    "images/number91.png",
-    "images/number92.png",
-    "images/number93.png",
-]
 // Keys and all that garbage
 const keys = {};
-var keysDown= {};
 window.addEventListener('keydown', (e) => {
     keys[e.code] = true;
-    keysDown[e.code] = true;
 });
-
 window.addEventListener('keyup', (e) => {
     keys[e.code] = false;
-    keysDown[e.code] = false;
 });
-function collide(x1,y1,x2,y2){
-    return x1==x2 && y1==y2;
-}
-function getObjectAt(x, y) {
-    return objects.find(o => o.x === x && o.y === y);
-}
-function tick(){
-    if (keysDown['ArrowUp']) player.y -= 1;
-    if (keysDown['ArrowDown']) player.y += 1;
-    if (keysDown['ArrowLeft']) player.x -= 1;
-    if (keysDown['ArrowRight']) player.x += 1;
 
-    player.vX = lerp(player.vX,player.x,0.4);
-    player.vY = lerp(player.vY,player.y,0.4);
-    if (Math.abs(player.vX-player.x) < 0.05) player.vX = player.x
-    if (Math.abs(player.vY-player.y) < 0.05) player.vY = player.y
-    
-    let o = getObjectAt(player.x,player.y);
-    if (o){
+
+function tick() {
+    const moveI = [
+        ['ArrowUp', 'KeyW'],
+        ['ArrowDown', 'KeyS'],
+        ['ArrowLeft', 'KeyA'],
+        ['ArrowRight', 'KeyD']
+    ].findIndex(a => a.some(k => keys[k]));
+    const move = [UP, DOWN, LEFT, RIGHT].at(moveI);
+
+    if (moveI !== -1) {
+        for (const o of objects.filter(o => o.isYou())) {
+            o.moveBy(move);
+        }
+    }
+    /*
+    for (const o of objects) {
         let oData = objectData[o.type];
-        if (collide(player.x,player.y,o.x,o.y)){
+        if (collide(player.x,player.y,o.x,o.y)) {
             if (oData.pushable) {
                 o.x += player.x-Math.round(player.vX);
                 o.y += player.y-Math.round(player.vY);
@@ -135,92 +103,101 @@ function tick(){
             
         }
     }
-    for (o of objects){
-        o.vX = lerp(o.vX,o.x,0.4);
-        o.vY = lerp(o.vY,o.y,0.4);
-    }
+    */
     
     // Simulate the One Click. Stupid that it repeats, but works mostly
-    for (i in keysDown){
-        keysDown[i]=false;
+    Object.values(keys).forEach((v, i) => keys[Object.keys(keys)[i]] = false);
+}
+
+let lastTick = Date.now();
+function frame() {
+    const start = Date.now();
+
+    if (Date.now() - lastTick > 1000/(FPS/2)) {
+        tick();
+        lastTick = Date.now();
     }
-    checkEquations();
+
+    //checkEquations();
+
+    for (const o of objects) {
+        o.vP.x = lerp(o.vP.x, o.p.x, 0.4);
+        o.vP.y = lerp(o.vP.y, o.p.y, 0.4);
+        if (Math.abs(o.vP.x - o.p.x) < 0.05) o.vP.x = o.p.x;
+        if (Math.abs(o.vP.y - o.p.y) < 0.05) o.vP.y = o.p.y;
+    }
+
     draw();
-    
-}
-function checkEquations(){
-    for (let o of objects){
-        let oData = objectData[o.type]
-        let length = 1;
-        if (oData.TYPE == "number"){
-            value = oData.val;
-        }else{
-            value = 0;
-        }
-        let operation = null;
-        while (getObjectAt(o.x + length,o.y)){
-            let o2 = getObjectAt(o.x + length,o.y);
-            let o2Data = objectData[o2.type];
 
-            if (o2Data.TYPE == "wall" || o2Data.TYPE == "object"){
-                break;
-            }else if (o2Data.TYPE == "value"){
-                value = operation(oData.val,o2Data.val);
-            }else if (o2Data.TYPE == "operation"){
-                operation = o2Data.output;
-            }
-        }
-        console.log(value);
-    }
-    // ye olde script that was unfinished 
-    
-    // let equations = [];
-    // for (let y = 0; y < gridHeight; y++) {
-    //     for (let x = 0; x < gridWidth; x++) {
-    //         for (o of objects){
-    //             if (collide(o.x,o.y,x,y)){
-    //                 equations.push({x:x,y:y,return:})
-    //             }
-    //         }
-    //     }
-    // }
-    // for (let i = 0; i < equations.length; i++){
-    //     for (let ii = 0; ii < equations[i].length; ii++){
-    //         if (o.x == equations[i][ii].x && o.y == equations[i][ii]){
-                
-    //         }
-    //     }
-    // }
+    const elapsed = Date.now() - start;
+    if (elapsed < 1000/FPS) setTimeout(() => requestAnimationFrame(frame), 1000/FPS - elapsed);
+    else requestAnimationFrame(frame);
 }
 
-function draw(){
-    ctx.imageSmoothingEnabled = false;
+function drawImageAt(img, { x, y }) {
+    ctx.drawImage(getImage(img), x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE);
+}
+function drawImageAtFrame(img, { x, y }, f) {
+    ctx.drawImage(getImage(img),
+        f*24, 0,
+        24, 24,
+        x*TILESIZE, y*TILESIZE,
+        TILESIZE, TILESIZE
+    );
+}
+function drawImageInSheet(img, { x, y }, s, f) {
+    ctx.drawImage(getImage(img),
+        f*24, s*24,
+        24, 24,
+        x*TILESIZE, y*TILESIZE,
+        TILESIZE, TILESIZE
+    );
+}
+
+function draw() {
     ctx.fillStyle = "BLACK";
-    ctx.fillRect(0,0,288,288);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "WHITE";
-    
-    ctx.drawImage(getImage("images/babababa.png"),player.vX * 24,player.vY * 24,24,24);
 
-    for (o of objects){
-        let oData = objectData[o.type];
-        let art = "images/"+oData.art+"1.png";
-        if (!oData.static){
-           art = "images/"+oData.art+(Math.floor((Date.now()/200)%3+1))+".png";
+    for (const o of objects) {
+        let oData = objectData[o.getObject()];
+        let art = `images/${oData.art}.png`;
+
+        // exception for unfinished art
+        if (['baba', 'wall'].includes(o.getObject())) {
+            
+            drawImageAt(art, o.vP);
+            continue;
         }
-        ctx.drawImage(getImage(art),o.vX * 24,o.vY * 24,24,24);
+        const frame = Math.floor((Date.now()/200)%3);
+
+        const numbermaybe = o.getObject().match(/(?<=number)\d+/g);
+        if (numbermaybe) {
+            drawImageInSheet(art, o.vP, numbermaybe[0], frame);
+            continue;
+        }
+
+        drawImageAtFrame(art, o.vP, frame);
     }
 }
-function init(){
-    for (var i = 0; i < preloadImages.length; i++){
-        preloadImage(preloadImages[i]);
-    }
-    newObject(3,3,"wall");
 
-    newObject(5,3,"number1");
-    setInterval(tick,1000/FPS);
-    // setInterval(function(){
-    //     player.x += 1;
-    // },1000);
+
+
+function init() {
+    newObject(1, 1, "baba");
+    addRule('baba', 'you');
     
+    newObject(5, 5, "number1");
+
+    newObject(3, 3, "wall");
+    newObject(5, 3, "goal");
+    addRule('goal', 'push');
+    addRule('wall', 'stop');
+
+    newObject(3, 5, 'win');
+
+    // Promise stuff for image loading BEFORE running the game.
+    Promise.all(preloadImages.map(preloadImage))
+    .then(() => requestAnimationFrame(frame));
 }
 init();
