@@ -23,13 +23,14 @@ const objectData = {
         art: "stop",
         TYPE: "attribute",
     },
+
     is: {
         art : "goal",
         TYPE : "verb",
     },
     add: {
         output : function(i1,i2){return i1 + i2;},
-        art : "goal",
+        art : "plus",
         TYPE : "operator",
     },
 

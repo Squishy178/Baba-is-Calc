@@ -3,8 +3,8 @@ const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
 const TILESIZE = 24;
-const levelw = 8;
-const levelh = 8;
+const levelw = 10;
+const levelh = 10;
 
 canvas.width = levelw * TILESIZE;
 canvas.height = levelh * TILESIZE;
@@ -44,29 +44,126 @@ const preloadImages = [
     "images/goal.png",
     "images/wall.png",
     "images/numbers.png",
+    "images/plus.png",
 ];
 
+// state stuff
+let turnInProgress = false;
+const inputQueue = [];
+const undoStack = [];
+
+function saveState() {
+    const state = objects.map(o => ({
+        obj: o.getObject(),
+        p: { x: o.p.x, y: o.p.y },
+        facing: o.facing,
+    }));
+    return state;
+}
+
+function loadState(state) {
+    state.forEach((s, i) => {
+        const o = objects[i];
+        o.changeObject(s.obj);
+        o.p.x = s.p.x;
+        o.p.y = s.p.y;
+        o.vP.x = s.p.x;
+        o.vP.y = s.p.y;
+        o.facing = s.facing;
+    });
+}
+
+function undo() {
+    if (turnInProgress) return;
+    if (undoStack.length === 0) return;
+    const lastState = undoStack.pop();
+    loadState(lastState);
+}
+
+function reset() {
+    loadState(undoStack.shift());
+    undoStack.length = 0;
+    
+    // Failed attempt at making a reset animation
+    /*
+    let timei = 0;
+    let haveReset = false;
+    const resetAnim = setInterval(() => {
+        ctx.save();
+        ctx
+
+        if (timei < 7500) {
+            
+        }
+        else if (timei > 7500) {
+
+
+            haveReset = true;
+            if (!haveReset) {
+            }
+        }
+
+        timei++;
+    }, 1000/FPS);
+
+    setTimeout(() => clearInterval(resetAnim), 1500);
+    */
+}
+
+const TURNTIME = 150;
+let turnTimer = 0;
+let lastTick = Date.now();
 
 // Keys and all that garbage
 const keys = {};
 window.addEventListener('keydown', (e) => {
+    const move = {
+        ArrowUp: UP,
+        KeyW: UP,
+        ArrowDown: DOWN,
+        KeyS: DOWN,
+        ArrowLeft: LEFT,
+        KeyA: LEFT,
+        ArrowRight: RIGHT,
+        KeyD: RIGHT,
+        Space: null,
+    }[e.code];
+
+    if (e.code === 'KeyZ') undo();
+    
+    if (move === undefined) return;
+    if (e.repeat) return;
+
+    e.preventDefault();
+    inputQueue.push(move);
+
+    if (turnInProgress) return;
+    startTick();
+
     keys[e.code] = true;
 });
 window.addEventListener('keyup', (e) => {
-    keys[e.code] = false;
+    if (keys[e.code]) {
+        keys[e.code] = false;
+    }
 });
 
 
-function tick() {
-    const moveI = [
-        ['ArrowUp', 'KeyW'],
-        ['ArrowDown', 'KeyS'],
-        ['ArrowLeft', 'KeyA'],
-        ['ArrowRight', 'KeyD']
-    ].findIndex(a => a.some(k => keys[k]));
-    const move = [UP, DOWN, LEFT, RIGHT].at(moveI);
+function startTick() {
+    if (turnInProgress) return;
+    if (inputQueue.length === 0) return;
 
-    if (moveI !== -1) {
+    const move = inputQueue.shift();
+
+    undoStack.push(saveState());
+
+    turnInProgress = true;
+    turnTimer = 0;
+
+    if (move === null) {
+        // wait
+    }
+    else {
         for (const o of objects.filter(o => o.isYou())) {
             o.moveBy(move);
         }
@@ -105,25 +202,39 @@ function tick() {
     */
     
     // Simulate the One Click. Stupid that it repeats, but works mostly
-    Object.values(keys).forEach((v, i) => keys[Object.keys(keys)[i]] = false);
+    Object.keys(keys).forEach(k => keys[k] = false);
 }
 
-let lastTick = Date.now();
+function endTick() {
+    for (const o of objects) {
+        o.vP.x = o.p.x;
+        o.vP.y = o.p.y;
+    }
+
+    checkEquations();
+
+    turnInProgress = false;
+
+    startTick();
+}
+
+
 function frame() {
     const start = Date.now();
 
-    if (Date.now() - lastTick > 1000/(FPS/2)) {
-        tick();
-        lastTick = Date.now();
-    }
+    const delta = start - lastTick;
+    lastTick = start;
 
-    //checkEquations();
+    if (turnInProgress) {
+        turnTimer += delta;
+        const t = Math.min(turnTimer / TURNTIME, 1);
+        
+        for (const o of objects) {
+            o.vP.x = lerp(o.vP.x, o.p.x, t);
+            o.vP.y = lerp(o.vP.y, o.p.y, t);
+        }
 
-    for (const o of objects) {
-        o.vP.x = lerp(o.vP.x, o.p.x, 0.4);
-        o.vP.y = lerp(o.vP.y, o.p.y, 0.4);
-        if (Math.abs(o.vP.x - o.p.x) < 0.05) o.vP.x = o.p.x;
-        if (Math.abs(o.vP.y - o.p.y) < 0.05) o.vP.y = o.p.y;
+        if (t === 1) endTick();
     }
 
     draw();
@@ -133,24 +244,65 @@ function frame() {
     else requestAnimationFrame(frame);
 }
 
-function drawImageAt(img, { x, y }) {
-    ctx.drawImage(getImage(img), x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE);
+
+
+const tintCanvas = document.createElement("canvas");
+const tintCtx = tintCanvas.getContext("2d");
+tintCanvas.width = TILESIZE;
+tintCanvas.height = TILESIZE;
+
+function applyTint(drawFunc, x, y, w, h, tint) {
+    tintCtx.clearRect(0, 0, TILESIZE, TILESIZE);
+
+    drawFunc(tintCtx);
+
+    tintCtx.globalCompositeOperation = 'source-in';
+    tintCtx.fillStyle = tint;
+    tintCtx.fillRect(0, 0, w, h);
+    tintCtx.globalCompositeOperation = 'source-over';
+
+    ctx.drawImage(tintCanvas, x, y);
 }
-function drawImageAtFrame(img, { x, y }, f) {
-    ctx.drawImage(getImage(img),
+
+function shadeItUp(df, x, y, tint) {
+    const dx = x * TILESIZE;
+    const dy = y * TILESIZE;
+
+    if (!tint) {
+        ctx.translate(dx, dy);
+        df(ctx);
+        ctx.translate(-dx, -dy);
+    }
+    else applyTint(
+        df,
+        dx, dy,
+        TILESIZE, TILESIZE,
+        tint
+    );
+}
+
+function drawImageAt(img, { x, y }, tint = undefined) {
+    const df = (c) => c.drawImage(getImage(img), 0, 0, TILESIZE, TILESIZE);
+    shadeItUp(df, x, y, tint);
+}
+
+function drawImageAtFrame(img, { x, y }, f, tint = undefined) {
+    const df = (c) => c.drawImage(getImage(img),
         f*24, 0,
         24, 24,
-        x*TILESIZE, y*TILESIZE,
+        0, 0,
         TILESIZE, TILESIZE
     );
+    shadeItUp(df, x, y, tint);
 }
-function drawImageInSheet(img, { x, y }, s, f) {
-    ctx.drawImage(getImage(img),
+function drawImageInSheet(img, { x, y }, s, f, tint = undefined) {
+    const df = (c) => c.drawImage(getImage(img),
         f*24, s*24,
         24, 24,
-        x*TILESIZE, y*TILESIZE,
+        0, 0,
         TILESIZE, TILESIZE
     );
+    shadeItUp(df, x, y, tint);
 }
 
 function draw() {
@@ -172,7 +324,7 @@ function draw() {
 
         const numbermaybe = o.getObject().match(/(?<=number)\d+/g);
         if (numbermaybe) {
-            drawImageInSheet(art, o.vP, numbermaybe[0], frame);
+            drawImageInSheet(art, o.vP, numbermaybe[0], frame, 'gray');
             continue;
         }
 
@@ -184,14 +336,20 @@ function draw() {
 
 function init() {
     newObject(1, 1, "baba");
-    addRule('baba', 'you');
+    addRule('baba', 'is', 'you');
     
     newObject(5, 5, "number1");
 
     newObject(3, 3, "wall");
     newObject(5, 3, "goal");
-    addRule('goal', 'push');
-    addRule('wall', 'stop');
+    addRule('goal', 'is', 'push');
+    addRule('wall', 'is', 'stop');
+
+    newObject(3, 5, 'add');
+    addRule('add', 'is', 'push');
+
+    newObject(1, 5, 'number1');
+    addRule('number1', 'is', 'push');
 
     //newObject(3, 5, 'win');
 
