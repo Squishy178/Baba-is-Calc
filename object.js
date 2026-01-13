@@ -34,7 +34,7 @@ class BabaEntity {
         const nx = this.p.x + dir.x;
         const ny = this.p.y + dir.y;
         const blockers = findEntitiesAt({ x: nx, y: ny });
-
+        
         let testedPush = false;
         for (const blocker of blockers) {
             if (blocker.isPush()) {
@@ -48,6 +48,11 @@ class BabaEntity {
             }
             if (blocker.isStop()) return false;
         }
+        //  Checks if the space behind is empty to spawn move effect
+        if (findEntitiesAt({ x: this.p.x-dir.x, y: this.p.y-dir.y }).length == 0) {
+
+            newParticle(this.p,this.#obj); //move effect :)
+        }
 
         this.p.x = nx;
         this.p.y = ny;
@@ -58,6 +63,7 @@ class BabaEntity {
     moveWithoutCheck(dir) {
         this.p.x += dir.x;
         this.p.y += dir.y;
+        
     }
 
     isAttribute(attr) {
