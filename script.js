@@ -23,6 +23,7 @@ function lerp(start, end, t) {
 // Images. Javascript seems to hate them but whatever
 var loadedImages = {};
 let imgLoadedCount = 0;
+
 function preloadImage(url) {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -41,7 +42,6 @@ function getImage(url) {
 
 const preloadImages = [
     "images/babababa.png",
-    "images/goal.png",
     "images/wall.png",
     "images/numbers.png",
     "images/plus.png",
@@ -52,7 +52,7 @@ const preloadImages = [
     "images/text_wall.png",
     "images/text_stop.png",
     "images/text_number.png",
-    //"images/text_push.png",
+    "images/text_push.png",
 ];
 
 // state stuff
@@ -118,7 +118,7 @@ function reset() {
     */
 }
 
-const TURNTIME = 150;
+const TURNTIME = 125;
 let turnTimer = 0;
 let lastTick = Date.now();
 
@@ -173,41 +173,11 @@ function startTick() {
     }
     else {
         for (const o of objects.filter(o => o.isYou())) {
+            
             o.moveBy(move);
-        }
-    }
-    /*
-    for (const o of objects) {
-        let oData = objectData[o.type];
-        if (collide(player.x,player.y,o.x,o.y)) {
-            if (oData.pushable) {
-                o.x += player.x-Math.round(player.vX);
-                o.y += player.y-Math.round(player.vY);
-                let o2 = getObjectAt(o.x,o.y);
-                if (o2){
-                
-                    if (collide(o2.x,o2.y,o.x,o.y) && o != o2){
-                        player.x = Math.round(player.vX);
-                        player.vX = Math.round(player.vX);
-                        player.y = Math.round(player.vY);
-                        player.vY = Math.round(player.vY);
-
-                        o.x = Math.round(o.vX);
-                        o.vX = Math.round(o.vX);
-                        o.y = Math.round(o.vY);
-                        o.vY = Math.round(o.vY);
-                    }
-                } 
-            }else{
-                player.x = Math.round(player.vX);
-                player.vX = Math.round(player.vX);
-                player.y = Math.round(player.vY);
-                player.vY = Math.round(player.vY);
-            }
             
         }
     }
-    */
     
     // Simulate the One Click. Stupid that it repeats, but works mostly
     Object.keys(keys).forEach(k => keys[k] = false);
@@ -218,6 +188,8 @@ function endTick() {
         o.vP.x = o.p.x;
         o.vP.y = o.p.y;
     }
+
+    
 
     checkEquations();
     checkSentences();
@@ -245,7 +217,11 @@ function frame() {
 
         if (t === 1) endTick();
     }
-
+    for (const p of particles) {
+        if (p.update(delta)){
+            particles.splice(particles.indexOf(p),1)
+        }
+    }
     draw();
 
     const elapsed = Date.now() - start;
@@ -290,26 +266,26 @@ function shadeItUp(df, x, y, tint) {
     );
 }
 
-function drawImageAt(img, { x, y }, tint = undefined) {
-    const df = (c) => c.drawImage(getImage(img), 0, 0, TILESIZE, TILESIZE);
+function drawImageAt(img, { x, y }, tint = undefined,size = TILESIZE) {
+    const df = (c) => c.drawImage(getImage(img), 0, 0, size, size);
     shadeItUp(df, x, y, tint);
 }
 
-function drawImageAtFrame(img, { x, y }, f, tint = undefined) {
+function drawImageAtFrame(img, { x, y }, f, tint = undefined,size = TILESIZE) {
     const df = (c) => c.drawImage(getImage(img),
         f*24, 0,
         24, 24,
         0, 0,
-        TILESIZE, TILESIZE
+        size, size
     );
     shadeItUp(df, x, y, tint);
 }
-function drawImageInSheet(img, { x, y }, s, f, tint = undefined) {
+function drawImageInSheet(img, { x, y }, s, f, tint = undefined,size = TILESIZE) {
     const df = (c) => c.drawImage(getImage(img),
         f*24, s*24,
         24, 24,
         0, 0,
-        TILESIZE, TILESIZE
+        size, size
     );
     shadeItUp(df, x, y, tint);
 }
@@ -319,6 +295,15 @@ function draw() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "WHITE";
 
+    // Render Particles/Trail
+    for (const p of particles) {
+        let art = `images/${objectData[p.getObject()].art}.png`;
+        let offset = 0.00375*(150-p.life);
+        let pos = p.getPosition();
+        drawImageAtFrame(art,{x: pos.x + offset, y: pos.y+offset},0,false,TILESIZE / 150 * p.life);
+    }
+
+    // Render Objects
     for (const o of objects) {
         let oData = objectData[o.getObject()];
         let art = `images/${oData.art}.png`;
@@ -326,8 +311,9 @@ function draw() {
         if (!preloadImages.includes(art)) return;
 
         // exception for unfinished art
+        // Aight buh
         if (['baba', 'wall'].includes(o.getObject())) {
-            
+             
             drawImageAt(art, o.vP);
             continue;
         }
@@ -346,16 +332,17 @@ function draw() {
 
 
 function init() {
+    // no more addRule calls needed! But I kept the code in here as comments just because why delete them
+
     newObject(1, 1, "baba");
-    addRule('baba', 'is', 'you');
+    //addRule('baba', 'is', 'you');
     
     newObject(3, 3, "wall");
-    newObject(5, 3, "goal");
-    addRule('goal', 'is', 'push');
-    addRule('wall', 'is', 'stop');
+    
+    //addRule('wall', 'is', 'stop');
     
     newObject(3, 5, 'add');
-    addRule('add', 'is', 'push');
+    //addRule('add', 'is', 'push');
     
     writeSentence('baba is you', 4, 1);
     

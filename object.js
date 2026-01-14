@@ -34,7 +34,7 @@ class BabaEntity {
         const nx = this.p.x + dir.x;
         const ny = this.p.y + dir.y;
         const blockers = findEntitiesAt({ x: nx, y: ny });
-
+        
         let testedPush = false;
         for (const blocker of blockers) {
             if (blocker.isPush()) {
@@ -47,6 +47,12 @@ class BabaEntity {
                 }
             }
             if (blocker.isStop()) return false;
+        }
+        //  Checks if the space behind is empty to spawn move effect
+        //  Rohan— should we do a check? Maybe there should be particles no matter what (as long as the noun is under YOU or MOVE or AUTO)
+        if (findEntitiesAt({ x: this.p.x-dir.x, y: this.p.y-dir.y }).length == 0) {
+
+            newParticle(this.#obj,this.p,"trail",this.facing); //move effect :)
         }
 
         this.p.x = nx;
