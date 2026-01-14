@@ -61,21 +61,23 @@ class BabaEntity {
     }
 
     isAttribute(attr) {
+        /*
         const allVerbRules = getRulesForVerb(this.#obj, 'is');
         for (const rule of allVerbRules) {
             if (rule.obj === attr) {
                 return true;
             }
         }
+        */
 
-        return getRulesForVerb(this.#obj, 'is').some(r => r.obj === attr);
+        return getRulesForVerbEx(this.#obj, 'is').some(r => r.obj === attr);
     }
 
     isYou = () => this.isAttribute('you');
     isStop = () => this.isAttribute('stop');
 
     // special case for TEXT IS PUSH
-    isPush = () => this.isAttribute('push') || (['attribute', 'subject', 'verb'].includes(this.#type));
+    isPush = () => this.isAttribute('push') || (this.#obj.startsWith('text_'));
 
     getCoOccupiers() {
         return findEntitiesAt(this.p).filter(e => e !== this);
@@ -102,31 +104,62 @@ function getObjectsOfType(type) {
 }
 
 const rules = {};
-Object.keys(objectData).forEach(name => rules[name] = []);
+
+const rulesMapping = {
+    'number': s => (/^number-?\d+$/.test(s)),
+    'operation': s => (objectData[s].TYPE === 'operator'),
+};
+
+function getRulesFor(name) {
+    let thing = [];
+
+    // Direct rules
+    if (rules[name]) {
+        thing.push(...rules[name]);
+    }
+
+    for (const [ title, check ] of Object.entries(rulesMapping)) {
+        if (rules[title] === undefined) continue;
+        if (check(name)) thing.push(...rules[title]);
+    }
+
+    return thing;
+}
 
 function getRulesForVerb(name, verb) {
-    return rules[name].filter(r => r.verb === verb);
+    return getRulesFor(name).filter(r => r.verb === verb);
 }
 function getRulesForVerbEx(name, verb) {
-    return rules[name].filter(r => r.verb === verb && !r.preposition && !r.indirect);
+    return getRulesForVerb(name, verb).filter(r => r.preposition === '' && r.indirect === '');
 }
 
 function addRule(name, verb, attr, preposition = '', indirect = '') {
+    if (!rules[name]) rules[name] = [];
+    
     const rule = { verb, obj: attr, preposition, indirect };
-
     if (rules[name].some(r => r.verb === verb && r.obj === attr && r.preposition === preposition && r.indirect === indirect)) return;
     rules[name].push(rule);
 }
 function removeRule(name, verb, attr, preposition = '', indirect = '') {
+    if (!rules[name]) return;
     const i = rules[name].findIndex(r => r.verb === verb && r.obj === attr && r.preposition === preposition && r.indirect === indirect);
     if (i === -1) return;
+    
     rules[name].splice(i, 1);
 }
 
 
 
 function newObject(x, y, type) {
+    if (!Object.keys(objectData).includes(type)) return;
+
     objects.push(
         new BabaEntity(type, { x, y })
+    );
+}
+
+function writeSentence(sentence, sx, sy) {
+    sentence.split(' ').map(s=>'text_'+s).forEach(
+        (s, i) => newObject(sx + i, sy, s)
     );
 }

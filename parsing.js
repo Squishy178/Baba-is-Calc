@@ -41,9 +41,10 @@ function checkEquations(){
                 eqs.push(cloneEq);
             }
 
-            allEquations = allEquations.concat(eqs);
             length++;
         }
+
+        allEquations = allEquations.concat(eqs);
     }
 
     const result = allEquations.filter(arr => arr.length >= 3).map(evaluateExpression);
@@ -98,4 +99,63 @@ function checkEquations(){
     //         }
     //     }
     // }
+}
+
+function checkSentences() {
+    let allSentences = [];
+
+    function tryNext(sentence, o) {
+        const { words, lastType } = sentence;
+        const type = o.getType();
+
+        if (!["subject", "object", "verb", "preposition"].includes(type)) return null;
+
+        
+        const ruleVal = o.getObject().match(/(?<=text_)\w+/g)[0];
+        
+        if (type === "subject" && lastType !== "verb") return null;
+        else if (type === "verb" && lastType !== "subject") return null;
+        else if (type === "object" && lastType !== "verb") return null;
+
+        return {
+            words: [...words, ruleVal],
+            lastType: type,
+        };
+    }
+
+    for (let o of getObjectsOfType('subject')) {
+        let oData = objectData[o.getObject()];
+
+        let length = 1;
+        let sents = [{
+            words: [o.getObject().split('_')[1]],
+            lastType: "subject",
+        }];
+        
+        while (true) {
+            const np = {x: o.p.x + length, y: o.p.y};
+            const objects2 = findEntitiesAt(np);
+            if (objects2.length === 0) break;
+
+            const nextSent = [];
+            for (const sent of sents) {
+                for (const o2 of objects2) {
+                    const extended = tryNext(sent, o2);
+                    if (extended !== null) nextSent.push(extended);
+                    else nextSent.push(sent);
+                }
+            }
+
+            sents = nextSent;
+            length++;
+        }
+
+        allSentences = allSentences.concat(sents);
+    }
+
+    Object.keys(rules).forEach(k => rules[k] = []);
+    for (const { words: sentence, lastType: typ } of allSentences) {
+        console.log(sentence);
+        addRule(...sentence);
+    }
 }

@@ -45,6 +45,14 @@ const preloadImages = [
     "images/wall.png",
     "images/numbers.png",
     "images/plus.png",
+
+    "images/text_baba.png",
+    "images/text_is.png",
+    "images/text_you.png",
+    "images/text_wall.png",
+    "images/text_stop.png",
+    "images/text_number.png",
+    //"images/text_push.png",
 ];
 
 // state stuff
@@ -212,6 +220,7 @@ function endTick() {
     }
 
     checkEquations();
+    checkSentences();
 
     turnInProgress = false;
 
@@ -314,6 +323,8 @@ function draw() {
         let oData = objectData[o.getObject()];
         let art = `images/${oData.art}.png`;
 
+        if (!preloadImages.includes(art)) return;
+
         // exception for unfinished art
         if (['baba', 'wall'].includes(o.getObject())) {
             
@@ -338,23 +349,31 @@ function init() {
     newObject(1, 1, "baba");
     addRule('baba', 'is', 'you');
     
-    newObject(5, 5, "number1");
-
     newObject(3, 3, "wall");
     newObject(5, 3, "goal");
     addRule('goal', 'is', 'push');
     addRule('wall', 'is', 'stop');
-
+    
     newObject(3, 5, 'add');
     addRule('add', 'is', 'push');
-
+    
+    writeSentence('baba is you', 4, 1);
+    
+    for (let i = 0; i < levelw; i++) newObject(i, levelh-2, 'wall');
+    writeSentence('wall is stop', 0, levelh-1);
+    
+    newObject(5, 5, "number1");
     newObject(1, 5, 'number1');
-    addRule('number1', 'is', 'push');
+    writeSentence('number is push', 3, levelh-1);
 
     //newObject(3, 5, 'win');
 
     // Promise stuff for image loading BEFORE running the game.
     Promise.all(preloadImages.map(preloadImage))
-    .then(() => requestAnimationFrame(frame));
+    .then(() => {
+        requestAnimationFrame(frame);
+        checkSentences();
+        checkEquations();
+    });
 }
 init();
