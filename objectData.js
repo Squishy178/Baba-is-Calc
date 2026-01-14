@@ -7,10 +7,6 @@ const objectData = {
         art : "wall",
         TYPE : "noun",
     },
-    goal: {
-        art : "goal",
-        TYPE : "noun",
-    },
     win: {
         art : "win",
         TYPE : "attribute",

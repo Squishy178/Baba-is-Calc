@@ -51,7 +51,7 @@ class BabaEntity {
         //  Checks if the space behind is empty to spawn move effect
         if (findEntitiesAt({ x: this.p.x-dir.x, y: this.p.y-dir.y }).length == 0) {
 
-            newParticle(this.p,this.#obj); //move effect :)
+            newParticle(this.#obj,this.p,"trail",this.facing); //move effect :)
         }
 
         this.p.x = nx;

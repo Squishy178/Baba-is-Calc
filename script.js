@@ -258,8 +258,8 @@ function shadeItUp(df, x, y, tint) {
     );
 }
 
-function drawImageAt(img, { x, y }, tint = undefined) {
-    const df = (c) => c.drawImage(getImage(img), 0, 0, TILESIZE, TILESIZE);
+function drawImageAt(img, { x, y }, tint = undefined,size = TILESIZE) {
+    const df = (c) => c.drawImage(getImage(img), 0, 0, size, size);
     shadeItUp(df, x, y, tint);
 }
 
@@ -272,12 +272,12 @@ function drawImageAtFrame(img, { x, y }, f, tint = undefined,size = TILESIZE) {
     );
     shadeItUp(df, x, y, tint);
 }
-function drawImageInSheet(img, { x, y }, s, f, tint = undefined) {
+function drawImageInSheet(img, { x, y }, s, f, tint = undefined,size = TILESIZE) {
     const df = (c) => c.drawImage(getImage(img),
         f*24, s*24,
         24, 24,
         0, 0,
-        TILESIZE, TILESIZE
+        size, size
     );
     shadeItUp(df, x, y, tint);
 }
@@ -289,9 +289,10 @@ function draw() {
 
     // Render Particles/Trail
     for (const p of particles) {
-        let art = `images/${"goal"}.png`;//objectData[p.type].art
+        let art = `images/${objectData[p.getObject()].art}.png`;
         let offset = 0.00375*(150-p.life);
-        drawImageAtFrame(art,{x: p.p.x + offset, y: p.p.y+offset},0,false,TILESIZE / 150 * p.life);
+        let pos = p.getPosition();
+        drawImageAtFrame(art,{x: pos.x + offset, y: pos.y+offset},0,false,TILESIZE / 150 * p.life);
     }
 
     // Render Objects

@@ -1,19 +1,27 @@
 class Particle {
-
-    constructor(type, { x, y },facing) {
-        this.type = type
+    #obj
+    constructor(obj, { x, y },type,facing) {
+        this.#obj = obj
         this.p = { x: x, y: y };
+        this.vP = { x: 0, y: 0 };
         this.life = 150;
         this.facing = facing;
+        this.type = type;
     }
     update (delta) {
         this.life -= delta;
         return this.life<=0;
     }
+    getObject() {
+        return this.#obj;
+    }
+    getPosition() {
+        return this.p;
+    }
 }
 const particles = [];
-function newParticle({x, y}, type) {
+function newParticle(obj, {x, y}, type, facing = RIGHT) {
     particles.push(
-        new Particle(type, { x, y })
+        new Particle(obj, { x, y },type,facing)
     );
 }
