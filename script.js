@@ -42,7 +42,6 @@ function getImage(url) {
 
 const preloadImages = [
     "images/babababa.png",
-    "images/goal.png",
     "images/wall.png",
     "images/numbers.png",
     "images/plus.png",
@@ -328,8 +327,7 @@ function init() {
     newObject(5, 5, "number1");
 
     newObject(3, 3, "wall");
-    newObject(5, 3, "goal");
-    addRule('goal', 'is', 'push');
+    
     addRule('wall', 'is', 'stop');
 
     newObject(3, 5, 'add');
