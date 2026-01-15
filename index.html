@@ -12,9 +12,30 @@
             return true; // Prevents the default browser error handling (e.g., logging to the console)
         };
     </script> -->
+
+    <style>
+        button {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            translate: 0 -0.55rem;
+        }
+        button:hover {
+            background-color: #eeeeee;
+        }
+
+        img {
+            image-rendering: pixelated;
+            width: 2rem;
+        }
+    </style>
 </head>
-<body >
+<body>
     <canvas id = "canvas" width = "288" height = "288" style = "width:512px;height:512px;border-color: black;border-width:1x;border-style: solid; image-rendering: pixelated;"></canvas>
+
+    <button onclick="makeFullscreen()">
+        <img src="images/fullscreen.gif" alt="Make Fullscreen">
+    </button>
 </body>
 <script src = "objectData.js"></script>
 <script src = "object.js"></script>

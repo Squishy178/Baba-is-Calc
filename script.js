@@ -161,6 +161,11 @@ window.addEventListener('keyup', (e) => {
     }
 });
 
+function makeFullscreen() {
+    if (canvas.requestFullscreen) canvas.requestFullscreen();
+    else if (canvas.webkitRequestFullscreen) canvas.webkitRequestFullscreen();
+    else if (canvas.msRequestFullscreen) canvas.msRequestFullscreen();
+}
 
 function startTick() {
     if (turnInProgress) return;
