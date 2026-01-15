@@ -1,13 +1,15 @@
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext("2d");
-ctx.imageSmoothingEnabled = false;
 
 const TILESIZE = 24;
 const levelw = 10;
 const levelh = 10;
+const SCALINGFACTOR = 2;
 
-canvas.width = levelw * TILESIZE;
-canvas.height = levelh * TILESIZE;
+canvas.width = levelw * TILESIZE * SCALINGFACTOR;
+canvas.height = levelh * TILESIZE * SCALINGFACTOR;
+ctx.imageSmoothingEnabled = false;
+ctx.scale(SCALINGFACTOR, SCALINGFACTOR);
 
 const UP = { x: 0, y: -1 };
 const DOWN = { x: 0, y: 1 };
@@ -257,83 +259,6 @@ function frame() {
 
 
 
-const tintCanvas = document.createElement("canvas");
-const tintCtx = tintCanvas.getContext("2d");
-
-function applyTint(drawFunc, x, y, w, h, tint) {
-    tintCanvas.width = w;
-    tintCanvas.height = h;
-    tintCtx.clearRect(0, 0, w, h);
-
-    drawFunc(tintCtx);
-
-    tintCtx.globalCompositeOperation = 'source-in';
-    tintCtx.fillStyle = tint;
-    tintCtx.fillRect(0, 0, w, h);
-    tintCtx.globalCompositeOperation = 'source-over';
-
-    ctx.drawImage(tintCanvas, x, y);
-}
-
-function shadeItUp(df, x, y, tint) {
-    const dx = x * TILESIZE;
-    const dy = y * TILESIZE;
-
-    if (!tint) {
-        ctx.translate(dx, dy);
-        df(ctx);
-        ctx.translate(-dx, -dy);
-    }
-    else applyTint(
-        df,
-        dx, dy,
-        TILESIZE, TILESIZE,
-        tint
-    );
-}
-function shadeUpParticle(df, x, y, tint = undefined, size = TILESIZE) {
-    if (!tint) {
-        ctx.translate(x, y);
-        df(ctx);
-        ctx.translate(-x, -y);
-    }
-    else applyTint(
-        df,
-        x, y,
-        size, size,
-        tint
-    );
-}
-
-function drawImageAt(img, { x, y }, tint = undefined) {
-    const df = (c) => c.drawImage(getImage(img), 0, 0, TILESIZE, TILESIZE);
-    shadeItUp(df, x, y, tint);
-}
-
-function drawImageAtFrame(img, { x, y }, f, tint = undefined) {
-    const df = (c) => c.drawImage(getImage(img),
-        f*24, 0,
-        24, 24,
-        0, 0,
-        TILESIZE, TILESIZE
-    );
-    shadeItUp(df, x, y, tint);
-}
-function drawImageInSheet(img, { x, y }, s, f, tint = undefined) {
-    const df = (c) => c.drawImage(getImage(img),
-        f*24, s*24,
-        24, 24,
-        0, 0,
-        TILESIZE, TILESIZE
-    );
-    shadeItUp(df, x, y, tint);
-}
-
-function drawParticle(img, { rx, ry }, tint = undefined, size = TILESIZE) {
-    const df = (c) => c.drawImage(getImage(img), 0, 0, size, size);
-    shadeUpParticle(df, rx - size/2, ry - size/2, tint, size);
-}
-
 function draw() {
     ctx.fillStyle = "BLACK";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -357,8 +282,8 @@ function draw() {
 
         // exception for unfinished art
         // Aight buh
-        if (['baba', 'wall'].includes(o.getObject())) {
-             
+        if (['wall'].includes(o.getObject())) {
+            
             drawImageAt(art, o.vP);
             continue;
         }
