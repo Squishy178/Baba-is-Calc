@@ -16,6 +16,8 @@ const RIGHT = { x: 1, y: 0 };
 const DIRECTIONS = [UP, DOWN, LEFT, RIGHT];
 
 const FPS = 60;
+let CURRENTFRAME = 0;
+
 function lerp(start, end, t) {
     return start + (end - start) * t;
 };
@@ -40,6 +42,8 @@ function getImage(url) {
     return loadedImages[url];
 }
 
+const preloadImages = Object.values(objectData).filter(a=>a.art!=='goal').map(a => 'images/' + a.art + '.png');
+/* No more need for this array!
 const preloadImages = [
     "images/babababa.png",
     "images/wall.png",
@@ -54,6 +58,7 @@ const preloadImages = [
     "images/text_number.png",
     "images/text_push.png",
 ];
+*/
 
 // state stuff
 let turnInProgress = false;
@@ -222,8 +227,24 @@ function frame() {
             particles.splice(particles.indexOf(p),1)
         }
     }
+    if (CURRENTFRAME % Math.floor(FPS/8) === 0)
+        for (const o of objects.filter(o => o.isAttribute('win'))) {
+
+        const randomBetween = (a, b) => ((b-a)*Math.random()+a);
+        const randomAngle = () => randomBetween(0, 2*Math.PI);
+        const randomVels = [1, 2].map(a=>{
+            const angle = randomAngle();
+            const r = randomBetween(0.3, 0.7);
+            return { vx: r*Math.cos(angle), vy: r*Math.sin(angle) };
+        });
+
+        for (const vel of randomVels) {
+            newParticle('particle_win', o.p, "sparkle", 12, vel, 1000/FPS*16, '#ffe600');
+        }
+    }
     draw();
 
+    CURRENTFRAME++;
     const elapsed = Date.now() - start;
     if (elapsed < 1000/FPS) setTimeout(() => requestAnimationFrame(frame), 1000/FPS - elapsed);
     else requestAnimationFrame(frame);
@@ -233,11 +254,11 @@ function frame() {
 
 const tintCanvas = document.createElement("canvas");
 const tintCtx = tintCanvas.getContext("2d");
-tintCanvas.width = TILESIZE;
-tintCanvas.height = TILESIZE;
 
 function applyTint(drawFunc, x, y, w, h, tint) {
-    tintCtx.clearRect(0, 0, TILESIZE, TILESIZE);
+    tintCanvas.width = w;
+    tintCanvas.height = h;
+    tintCtx.clearRect(0, 0, w, h);
 
     drawFunc(tintCtx);
 
@@ -265,29 +286,47 @@ function shadeItUp(df, x, y, tint) {
         tint
     );
 }
+function shadeUpParticle(df, x, y, tint = undefined, size = TILESIZE) {
+    if (!tint) {
+        ctx.translate(x, y);
+        df(ctx);
+        ctx.translate(-x, -y);
+    }
+    else applyTint(
+        df,
+        x, y,
+        size, size,
+        tint
+    );
+}
 
-function drawImageAt(img, { x, y }, tint = undefined,size = TILESIZE) {
-    const df = (c) => c.drawImage(getImage(img), 0, 0, size, size);
+function drawImageAt(img, { x, y }, tint = undefined) {
+    const df = (c) => c.drawImage(getImage(img), 0, 0, TILESIZE, TILESIZE);
     shadeItUp(df, x, y, tint);
 }
 
-function drawImageAtFrame(img, { x, y }, f, tint = undefined,size = TILESIZE) {
+function drawImageAtFrame(img, { x, y }, f, tint = undefined) {
     const df = (c) => c.drawImage(getImage(img),
         f*24, 0,
         24, 24,
         0, 0,
-        size, size
+        TILESIZE, TILESIZE
     );
     shadeItUp(df, x, y, tint);
 }
-function drawImageInSheet(img, { x, y }, s, f, tint = undefined,size = TILESIZE) {
+function drawImageInSheet(img, { x, y }, s, f, tint = undefined) {
     const df = (c) => c.drawImage(getImage(img),
         f*24, s*24,
         24, 24,
         0, 0,
-        size, size
+        TILESIZE, TILESIZE
     );
     shadeItUp(df, x, y, tint);
+}
+
+function drawParticle(img, { rx, ry }, tint = undefined, size = TILESIZE) {
+    const df = (c) => c.drawImage(getImage(img), 0, 0, size, size);
+    shadeUpParticle(df, rx - size/2, ry - size/2, tint, size);
 }
 
 function draw() {
@@ -298,9 +337,10 @@ function draw() {
     // Render Particles/Trail
     for (const p of particles) {
         let art = `images/${objectData[p.getObject()].art}.png`;
-        let offset = 0.00375*(150-p.life);
         let pos = p.getPosition();
-        drawImageAtFrame(art,{x: pos.x + offset, y: pos.y+offset},0,false,TILESIZE / 150 * p.life);
+
+        const size = Math.max(1, p.size / p.maxLife * p.life);
+        drawParticle(art, {rx: (pos.x + 0.5) * TILESIZE, ry: (pos.y + 0.5) * TILESIZE}, p.tint, size);
     }
 
     // Render Objects
@@ -308,7 +348,7 @@ function draw() {
         let oData = objectData[o.getObject()];
         let art = `images/${oData.art}.png`;
 
-        if (!preloadImages.includes(art)) return;
+        if (!preloadImages.includes(art)) continue;
 
         // exception for unfinished art
         // Aight buh
@@ -352,6 +392,8 @@ function init() {
     newObject(5, 5, "number1");
     newObject(1, 5, 'number1');
     writeSentence('number is push', 3, levelh-1);
+
+    writeSentence('operator is win', 6, levelh-1);
 
     //newObject(3, 5, 'win');
 

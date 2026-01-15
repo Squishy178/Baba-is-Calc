@@ -20,11 +20,6 @@ const objectData = {
         art : "text_baba",
         TYPE : "subject",
     },
-
-    text_win: {
-        art : "text_win",
-        TYPE : "attribute",
-    },
     
     text_is: {
         art : "text_is",
@@ -37,7 +32,7 @@ const objectData = {
     },
     
     text_win: {
-        art : "win",
+        art : "text_win",
         TYPE : "object",
     },
     text_wall: {
@@ -56,6 +51,17 @@ const objectData = {
     text_number: {
         art : "text_number",
         TYPE : "subject",
+    },
+    text_operator: {
+        art : "text_operator",
+        TYPE : "subject",
+    },
+
+    /*============================== Particles ==============================*/
+
+    particle_win: {
+        art : "particle_win",
+        TYPE : "particle",
     },
 
     /*============================== Math ==============================*/

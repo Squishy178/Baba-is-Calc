@@ -1,14 +1,20 @@
 class Particle {
-    #obj
-    constructor(obj, { x, y },type,facing) {
-        this.#obj = obj
-        this.p = { x: x, y: y };
-        this.vP = { x: 0, y: 0 };
-        this.life = 150;
-        this.facing = facing;
+    #obj;
+
+    constructor(obj, { x, y }, type, size, { vx, vy } = { vx: 0, vy: 0 }, life = 150, tint = undefined) {
+        this.#obj = obj;
+        this.vP = { x: x, y: y };
+        this.vel = { x: vx, y: vy };
+        this.life = life;
+        this.maxLife = life;
         this.type = type;
+        this.size = size;
+        this.tint = tint;
     }
     update (delta) {
+        this.vP.x += this.vel.x * delta / 150;
+        this.vP.y += this.vel.y * delta / 150;
+
         this.life -= delta;
         return this.life<=0;
     }
@@ -16,12 +22,12 @@ class Particle {
         return this.#obj;
     }
     getPosition() {
-        return this.p;
+        return this.vP;
     }
 }
 const particles = [];
-function newParticle(obj, {x, y}, type, facing = RIGHT) {
+function newParticle(obj, {x, y}, type, size, { vx, vy } = { vx: 0, vy: 0 }, life = 150, tint = undefined) {
     particles.push(
-        new Particle(obj, { x, y },type,facing)
+        new Particle(obj, { x, y },type,size, { vx, vy }, life, tint)
     );
 }

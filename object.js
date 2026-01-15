@@ -49,10 +49,11 @@ class BabaEntity {
             if (blocker.isStop()) return false;
         }
         //  Checks if the space behind is empty to spawn move effect
-        //  Rohan— should we do a check? Maybe there should be particles no matter what (as long as the noun is under YOU or MOVE or AUTO)
+        //  from Rohan — should we do a check? Maybe there should be particles no matter what (as long as the noun is under YOU or MOVE or AUTO)
         if (findEntitiesAt({ x: this.p.x-dir.x, y: this.p.y-dir.y }).length == 0) {
 
-            newParticle(this.#obj,this.p,"trail",this.facing); //move effect :)
+            if (['you', 'move'].some(s => this.isAttribute(s)))
+                newParticle(this.#obj,this.p,"trail", TILESIZE); //move effect :)
         }
 
         this.p.x = nx;
@@ -113,7 +114,7 @@ const rules = {};
 
 const rulesMapping = {
     'number': s => (/^number-?\d+$/.test(s)),
-    'operation': s => (objectData[s].TYPE === 'operator'),
+    'operator': s => (objectData[s].TYPE === 'operator'),
 };
 
 function getRulesFor(name) {
