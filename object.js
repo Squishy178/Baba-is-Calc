@@ -50,10 +50,13 @@ class BabaEntity {
         }
         //  Checks if the space behind is empty to spawn move effect
         //  from Rohan — should we do a check? Maybe there should be particles no matter what (as long as the noun is under YOU or MOVE or AUTO)
-        if (findEntitiesAt({ x: this.p.x-dir.x, y: this.p.y-dir.y }).length == 0) {
+        //  this code does not work by the way because it checks the spot behind the object BEFORE the move, so it is redundant
+        //  redundant assuming the dust particle should be on the tile LEFT by the object.
+        //  I have so changed the code
+        if (findEntitiesAt(this.p).length <= 1) {
 
             if (['you', 'move'].some(s => this.isAttribute(s)))
-                newParticle(this.#obj,this.p,"trail", TILESIZE); //move effect :)
+                newParticle('particle_dust',this.p,"trail", TILESIZE); //move effect :)
         }
 
         this.p.x = nx;

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baba Is Calc</title>
 
+    <link rel="stylesheet" href="style.css">
+
     <!-- <script>
         // Stolen code for error fixing on Chromebook
         window.onerror = function(msg, url, linenumber) {
@@ -24,14 +26,14 @@
             background-color: #eeeeee;
         }
 
-        img {
+        button > img {
             image-rendering: pixelated;
             width: 2rem;
         }
     </style>
 </head>
 <body>
-    <canvas id = "canvas" width = "288" height = "288" style = "width:512px;height:512px;border-color: black;border-width:1x;border-style: solid; image-rendering: pixelated;"></canvas>
+    <canvas id = "canvas" style = "width:512px;height:512px;border-color: black;border-width:1x;border-style: solid; image-rendering: pixelated;"></canvas>
 
     <button onclick="makeFullscreen()">
         <img src="images/fullscreen.gif" alt="Make Fullscreen">
@@ -39,10 +41,10 @@
 </body>
 <script src = "objectData.js"></script>
 <script src = "object.js"></script>
+<script src = "const.js"></script>
 <script src = "shader.js"></script>
 <script src = "particle.js"></script>
 <script src = "parsing.js"></script>
 <script src = "script.js"></script>
-<style src = "style.css"></style>
 
 </html>

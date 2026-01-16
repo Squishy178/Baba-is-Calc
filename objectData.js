@@ -63,6 +63,10 @@ const objectData = {
         art : "particle_win",
         TYPE : "particle",
     },
+    particle_dust: {
+        art : "particle_dust",
+        TYPE : "particle",
+    },
 
     /*============================== Math ==============================*/
 
@@ -71,47 +75,47 @@ const objectData = {
         TYPE : "value",
         val: 1,
     },
-    number2:{
+    number2: {
         art : "numbers",
         TYPE : "value",
         val: 2,
     },
-    number3:{
+    number3: {
         art : "numbers",
         TYPE : "value",
         val: 3,
     },
-    number4:{
+    number4: {
         art : "numbers",
         TYPE : "value",
         val: 4,
     },
-    number5:{
+    number5: {
         art : "numbers",
         TYPE : "value",
         val: 5,
     },
-    number6:{
+    number6: {
         art : "numbers",
         TYPE : "value",
         val: 6,
     },
-    number7:{
+    number7: {
         art : "numbers",
         TYPE : "value",
         val: 7,
     },
-    number8:{
+    number8: {
         art : "numbers",
         TYPE : "value",
         val: 8,
     },
-    number9:{
+    number9: {
         art : "numbers",
         TYPE : "value",
         val: 9,
     },
-    number0:{
+    number0: {
         art : "numbers",
         TYPE : "value",
         val: 0,
