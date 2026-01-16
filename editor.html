@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baba Is Calc</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="editor.css">
+
+    <style>
+        button {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            translate: 0 -0.55rem;
+        }
+        button:hover {
+            background-color: #eeeeee;
+        }
+
+        button > img {
+            image-rendering: pixelated;
+            width: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="controlpanel">
+        <div class="slidercontainer">
+            <p style="margin: 0 auto;">Grid Size</p>
+            <div>
+                <div style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
+                    <p style="justify-content: flex-start;">4</p>
+                    <p style="justify-content: flex-end;">20</p>
+                </div>
+                <input type="range" min="4" max="20" value="10" class="slider" id="sizeslider">
+            </div>
+            <div>
+                <div style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
+                    <p style="justify-content: flex-start;">4</p>
+                    <p style="justify-content: flex-end;">20</p>
+                </div>
+                <input type="range" min="4" max="20" value="10" class="slider" id="sizeslider">
+            </div>
+        </div>
+
+        <p style="font-size: x-large;">Objects</p>
+        <div id="objholder"></div>
+    </div>
+
+    <div>
+
+        <canvas id = "canvas" style = "width:512px;height:512px;border-color: black;border-width:1x;border-style: solid; image-rendering: pixelated;"></canvas>
+    
+        <button onclick="makeFullscreen()">
+            <img src="images/fullscreen.gif" alt="Make Fullscreen">
+        </button>
+
+    </div>
+
+</body>
+<script src = "objectData.js"></script>
+<script src = "object.js"></script>
+<script src = "const.js"></script>
+<script src = "shader.js"></script>
+<script src = "particle.js"></script>
+<script src = "editor.js"></script>
+
+</html>
