@@ -2,7 +2,7 @@ const UP = { x: 0, y: -1 };
 const DOWN = { x: 0, y: 1 };
 const LEFT = { x: -1, y: 0 };
 const RIGHT = { x: 1, y: 0 };
-const DIRECTIONS = [UP, DOWN, LEFT, RIGHT];
+const DIRECTIONS = [RIGHT, UP, LEFT, DOWN];
 
 const FPS = 60;
 let CURRENTFRAME = 0;
@@ -72,6 +72,8 @@ function loadState(state) {
         o.vP.y = s.p.y;
         o.facing = s.facing;
     });
+    checkEquations();
+    checkSentences();
 }
 
 function undo() {
@@ -115,4 +117,25 @@ function makeFullscreen() {
     if (canvas.requestFullscreen) canvas.requestFullscreen();
     else if (canvas.webkitRequestFullscreen) canvas.webkitRequestFullscreen();
     else if (canvas.msRequestFullscreen) canvas.msRequestFullscreen();
-}``
+}
+
+
+function changeLightness(hex, lum) {
+
+	// validate hex string
+	hex = String(hex).replace(/[^0-9a-f]/gi, '');
+	if (hex.length < 6) {
+		hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+	}
+	lum = lum || 0;
+
+	// convert to decimal and change luminosity
+	var rgb = "#", c, i;
+	for (i = 0; i < 3; i++) {
+		c = parseInt(hex.substr(i*2,2), 16);
+		c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
+		rgb += ("00"+c).substr(c.length);
+	}
+
+	return rgb;
+}

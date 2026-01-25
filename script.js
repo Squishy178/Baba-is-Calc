@@ -77,6 +77,9 @@ function startTick() {
     
     // Simulate the One Click. Stupid that it repeats, but works mostly
     Object.keys(keys).forEach(k => keys[k] = false);
+
+    checkEquations();
+    checkSentences();
 }
 
 function endTick() {
@@ -87,11 +90,8 @@ function endTick() {
 
     
 
-    checkEquations();
-    checkSentences();
 
     turnInProgress = false;
-
     startTick();
 }
 
@@ -118,6 +118,10 @@ function frame() {
             particles.splice(particles.indexOf(p),1)
         }
     }
+
+
+    // =============================== WIN PARTICLES ================================== //
+
     if (CURRENTFRAME % Math.floor(FPS/8) === 0)
         for (const o of objects.filter(o => o.isAttribute('win'))) {
 
@@ -133,6 +137,8 @@ function frame() {
             newParticle('particle_win', o.p, "sparkle", 12, vel, 1000/FPS*16, '#ffe600');
         }
     }
+
+
     draw();
 
     CURRENTFRAME++;
@@ -172,10 +178,21 @@ function draw() {
             continue;
         }
         const frame = Math.floor((Date.now()/200)%3);
+        
+        if (['number', 'operator', 'text'].some(t => rulesMapping[t](o.getObject()))) {
+            const baseColor = oData.color ?? "#ffffff";
+            let finalColor = clr => o.active ? clr : changeLightness(clr, -0.4);
+            
+            const numbermaybe = rulesMapping.number(o.getObject());
+            if (numbermaybe) {
+                drawImageInSheet(art, o.vP, oData.val, frame, finalColor('#ffffff'));
+            }
 
-        const numbermaybe = o.getObject().match(/(?<=number)\d+/g);
-        if (numbermaybe) {
-            drawImageInSheet(art, o.vP, numbermaybe[0], frame, 'gray');
+            else if (oData.style && oData.style === 'directional') {
+                drawImageInSheet(art, o.vP, DIRECTIONS.indexOf(o.facing), frame, finalColor('#ffffff'));
+            }
+
+            else drawImageAtFrame(art, o.vP, frame, finalColor(baseColor));
             continue;
         }
 
@@ -197,6 +214,8 @@ function init() {
     
     newObject(3, 5, 'add');
     //addRule('add', 'is', 'push');
+
+    newObject(7, 5, 'text_therefore');
     
     writeSentence('baba is you', 4, 1);
     
@@ -207,7 +226,7 @@ function init() {
     newObject(1, 5, 'number1');
     writeSentence('number is push', 3, levelh-1);
 
-    writeSentence('operator is win', 6, levelh-1);
+    writeSentence('operator is win', 6, 3);
 
     //newObject(3, 5, 'win');
 

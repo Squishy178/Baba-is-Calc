@@ -4,7 +4,7 @@ function checkEquations(){
     for (let o of getObjectsOfType("value")) {
         let oData = objectData[o.getObject()];
         
-        const eqs = [[oData.val]];
+        const eqs = [[o]];
         let length = 1;
         let lastType = "value";
 
@@ -15,26 +15,21 @@ function checkEquations(){
             
             for (const o2 of objects2) {
                 const cloneEq = [...currentEq];
-
                 let o2Data = objectData[o2.getObject()];
 
-                if (!["value", "operator"].includes(o2Data.TYPE)) continue; // invalid expression
+                if (!["number", "operator"].some(t => rulesMapping[t](o2.getObject()))) { // invalid expression
+                    eqs.push(cloneEq);
+                    continue;
+                }
 
                 if (o2Data.TYPE === "value"){
-                    if (lastType === "value") {
-                        let currentVal = currentEq.pop();
-                        currentVal = Number(toString(currentVal) + toString(o2Data.val));
-                        cloneEq.push(currentVal);
-                    }
-                    else {
-                        cloneEq.push(o2Data.val);
-                    }
+                    cloneEq.push(o2);
                     lastType = "value";
                 }
                 else if (o2Data.TYPE === "operator") {
                     if (lastType === "operator") continue; // Invalid expression
 
-                    cloneEq.push(o2Data.output);
+                    cloneEq.push(o2);
                     lastType = "operator";
                 }
 
@@ -47,25 +42,42 @@ function checkEquations(){
         allEquations = allEquations.concat(eqs);
     }
 
-    const result = allEquations.filter(arr => arr.length >= 3).map(evaluateExpression);
+    function isValidEquation(eq) {
+        // EXPAND LOGIC LATER
+        return (eq.length >= 3);
+    }
+
+    for (const o of objects.filter(o => ['number', 'operator'].some(t => rulesMapping[t](o.getObject())))) {
+        o.active = allEquations
+            .filter(isValidEquation)
+            .some(eq => eq.includes(o));
+    }
+    
+    const parseAllEqs = arr => arr.map(o => {
+        const oObj = o.getObject();
+        if (rulesMapping.number(oObj)) return objectData[oObj].val;
+        else if (rulesMapping.operator(oObj)) return objectData[oObj].output;
+    });
+
+    const result = allEquations.filter(arr => arr.length >= 3).map(parseAllEqs).map(evaluateExpression);
     if (result) console.log(result);
 
     function evaluateExpression(expr) {
-        const vs = [], opers = [];
+        const vals = [], opers = [];
         let lastType = null;
         for (const item of expr) {
             if (typeof item === "number") {
                 if (lastType === "value") {
-                    const currentVal = vs.pop();
-                    vs.push(Number(toString(currentVal) + toString(item)));
+                    const currentVal = vals.pop();
+                    vals.push(Number(toString(currentVal) + toString(item)));
                 }
-                else vs.push(item);
+                else vals.push(item);
 
-                if (vs.length === 2 && opers.length === 1) {
-                    const val2 = vs.pop();
-                    const val1 = vs.pop();
+                if (vals.length === 2 && opers.length === 1) {
+                    const val2 = vals.pop();
+                    const val1 = vals.pop();
                     const oper = opers.pop();
-                    vs.push(oper(val1, val2));
+                    vals.push(oper(val1, val2));
                 }
                 
                 lastType = "value";
@@ -77,7 +89,7 @@ function checkEquations(){
             }
         }
 
-        return vs[0];
+        return vals[0];
     }
 
     // ye olde script that was unfinished 
@@ -111,14 +123,13 @@ function checkSentences() {
         if (!["subject", "object", "verb", "preposition"].includes(type)) return null;
 
         
-        const ruleVal = o.getObject().match(/(?<=text_)\w+/g)[0];
         
         if (type === "subject" && lastType !== "verb") return null;
         else if (type === "verb" && lastType !== "subject") return null;
         else if (type === "object" && lastType !== "verb") return null;
 
         return {
-            words: [...words, ruleVal],
+            words: [...words, o],
             lastType: type,
         };
     }
@@ -128,7 +139,7 @@ function checkSentences() {
 
         let length = 1;
         let sents = [{
-            words: [o.getObject().split('_')[1]],
+            words: [o],
             lastType: "subject",
         }];
         
@@ -146,14 +157,27 @@ function checkSentences() {
                 }
             }
 
-            sents = nextSent;
+            sents = [...new Set(nextSent)];
             length++;
         }
 
         allSentences = allSentences.concat(sents);
     }
 
+    function isValidSentence(sent) {
+        // EXPAND LOGIC LATER
+        return (sent.words.length >= 3);
+    }
+
+    allSentences = allSentences.filter(isValidSentence);
+    
+    for (const o of objects.filter(o => rulesMapping.text(o.getObject()))) {
+        o.active = allSentences.some(sent => sent.words.includes(o));
+    }
+
+
     Object.keys(rules).forEach(k => rules[k] = []);
+    allSentences = allSentences.map(sent => ({ words: sent.words.map(o => o.getObject().match(/(?<=text_)\w+/g)[0]), lastType: sent.lastType }));
     for (const { words: sentence, lastType: typ } of allSentences) {
         console.log(sentence);
         addRule(...sentence);

@@ -50,13 +50,18 @@ sliders.forEach(slider => slider.value = 10);
 
 // input stuff
 
-canvas.addEventListener('click', e => {
+const mousePos = { x: 0, y: 0, down: -1 };
+const findMousePos = e => {
     const rect = canvas.getBoundingClientRect();
     const mx = Math.floor((e.clientX - rect.left) / rect.width * levelw);
     const my = Math.floor((e.clientY - rect.top) / rect.height * levelh);
     console.log(selectedObject, mx, my);
-    newObject(mx, my, selectedObject);
-});
+    
+    mousePos.x = mx; mousePos.y = my;
+};
+canvas.addEventListener('mousedown', e => { findMousePos(e); mousePos.down = [0, -1, 1].at(e.button); });
+canvas.addEventListener('mouseup', e => { findMousePos(e); mousePos.down = -1; });
+canvas.addEventListener('mousemove', findMousePos);
 
 
 
@@ -118,6 +123,9 @@ function frame() {
     const start = Date.now();
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (mousePos.down === 0) newObject(mousePos.x, mousePos.y, selectedObject);
+    if (mousePos.down === 1) deleteObject(mousePos.x, mousePos.y);
 
     draw();
 

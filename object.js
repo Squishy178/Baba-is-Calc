@@ -9,6 +9,7 @@ class BabaEntity {
         this.vP = { x: x, y: y };
 
         this.facing = RIGHT;
+        this.active = !rulesMapping.text(objName);
     }
 
     update() {
@@ -59,15 +60,14 @@ class BabaEntity {
                 newParticle('particle_dust',this.p,"trail", TILESIZE); //move effect :)
         }
 
-        this.p.x = nx;
-        this.p.y = ny;
-
+        this.moveWithoutCheck(dir);
         return true;
     }
 
     moveWithoutCheck(dir) {
         this.p.x += dir.x;
         this.p.y += dir.y;
+        this.facing = dir;
     }
 
     isAttribute(attr) {
@@ -118,6 +118,7 @@ const rules = {};
 const rulesMapping = {
     'number': s => (/^number-?\d+$/.test(s)),
     'operator': s => (objectData[s].TYPE === 'operator'),
+    'text': s => (['verb', 'subject', 'object', 'condition'].includes(objectData[s].TYPE)),
 };
 
 function getRulesFor(name) {
@@ -166,6 +167,11 @@ function newObject(x, y, type) {
     objects.push(
         new BabaEntity(type, { x, y })
     );
+}
+function deleteObject(x, y) {
+    const found = objects.findIndex(o => o.p.x === x && o.p.y === y);
+    if (found === -1) return;
+    objects.splice(found,1);
 }
 
 function writeSentence(sentence, sx, sy) {
