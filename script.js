@@ -2,8 +2,8 @@ const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext("2d");
 
 const TILESIZE = 24;
-const levelw = 10;
-const levelh = 10;
+const levelw = 12;
+const levelh = 12;
 const SCALINGFACTOR = 2;
 
 canvas.width = levelw * TILESIZE * SCALINGFACTOR;
@@ -172,10 +172,17 @@ function draw() {
 
         // exception for unfinished art
         // Aight buh
+
+        //Don't tint at all. filtered images are really hard on performance
+        let tint = null;
         if (['wall'].includes(o.getObject())) {
             
-            drawImageAt(art, o.vP);
+            drawImageAt(art, o.vP,tint);
             continue;
+        }
+        if (false && oData.TYPE!='noun'){//later, check if the object is in a sequence
+
+            tint = "gray"
         }
         const frame = Math.floor((Date.now()/200)%3);
         
@@ -196,7 +203,7 @@ function draw() {
             continue;
         }
 
-        drawImageAtFrame(art, o.vP, frame);
+        drawImageAtFrame(art, o.vP, frame,tint);
     }
 }
 
@@ -228,6 +235,7 @@ function init() {
 
     writeSentence('operator is win', 6, 3);
 
+
     //newObject(3, 5, 'win');
 
     // Promise stuff for image loading BEFORE running the game.
@@ -237,5 +245,7 @@ function init() {
         checkSentences();
         checkEquations();
     });
+    
 }
 init();
+//navigator.clipboard.writeText(parseLevel(objects));

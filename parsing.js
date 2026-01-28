@@ -92,25 +92,6 @@ function checkEquations(){
         return vals[0];
     }
 
-    // ye olde script that was unfinished 
-    
-    // let equations = [];
-    // for (let y = 0; y < gridHeight; y++) {
-    //     for (let x = 0; x < gridWidth; x++) {
-    //         for (o of objects){
-    //             if (collide(o.x,o.y,x,y)){
-    //                 equations.push({x:x,y:y,return:})
-    //             }
-    //         }
-    //     }
-    // }
-    // for (let i = 0; i < equations.length; i++){
-    //     for (let ii = 0; ii < equations[i].length; ii++){
-    //         if (o.x == equations[i][ii].x && o.y == equations[i][ii]){
-                
-    //         }
-    //     }
-    // }
 }
 
 function checkSentences() {
@@ -133,7 +114,7 @@ function checkSentences() {
             lastType: type,
         };
     }
-
+    
     for (let o of getObjectsOfType('subject')) {
         let oData = objectData[o.getObject()];
 

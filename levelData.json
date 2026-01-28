@@ -1,0 +1,26 @@
+{
+    "name": "Baba is Calculating",
+    "entities": [
+        {
+            "obj": "baba",
+            "pos": [1, 1]
+        }
+    ],
+    "generators": {
+       "lines": [
+            {
+                "obj": "wall",
+                "start": [0, 0],
+                "dir": [1, 0],
+                "length": 10
+            }
+       ],
+       "boxes":[
+       ],
+       "rects":[
+       ],
+       "sentences":[
+        
+       ]
+    }
+}
