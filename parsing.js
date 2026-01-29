@@ -7,38 +7,38 @@ function checkEquations(){
         const eqs = [[o]];
         let length = 1;
         let lastType = "value";
+        for (let xv of [1,0]) {
+            while (findEntitiesAt({x: o.p.x + length * xv, y: o.p.y + length * (1-xv)}).length > 0 && eqs.length > 0) {
+                let objects2 = findEntitiesAt({x: o.p.x + length, y: o.p.y + length * (1-xv)});
 
-        while (findEntitiesAt({x: o.p.x + length, y: o.p.y}).length > 0 && eqs.length > 0) {
-            let objects2 = findEntitiesAt({x: o.p.x + length, y: o.p.y});
+                const currentEq = eqs.pop();
+                
+                for (const o2 of objects2) {
+                    const cloneEq = [...currentEq];
+                    let o2Data = objectData[o2.getObject()];
 
-            const currentEq = eqs.pop();
-            
-            for (const o2 of objects2) {
-                const cloneEq = [...currentEq];
-                let o2Data = objectData[o2.getObject()];
+                    if (!["number", "operator"].some(t => rulesMapping[t](o2.getObject()))) { // invalid expression
+                        eqs.push(cloneEq);
+                        continue;
+                    }
 
-                if (!["number", "operator"].some(t => rulesMapping[t](o2.getObject()))) { // invalid expression
+                    if (o2Data.TYPE === "value"){
+                        cloneEq.push(o2);
+                        lastType = "value";
+                    }
+                    else if (o2Data.TYPE === "operator") {
+                        if (lastType === "operator") continue; // Invalid expression
+
+                        cloneEq.push(o2);
+                        lastType = "operator";
+                    }
+
                     eqs.push(cloneEq);
-                    continue;
                 }
 
-                if (o2Data.TYPE === "value"){
-                    cloneEq.push(o2);
-                    lastType = "value";
-                }
-                else if (o2Data.TYPE === "operator") {
-                    if (lastType === "operator") continue; // Invalid expression
-
-                    cloneEq.push(o2);
-                    lastType = "operator";
-                }
-
-                eqs.push(cloneEq);
+                length++;
             }
-
-            length++;
         }
-
         allEquations = allEquations.concat(eqs);
     }
 
@@ -123,25 +123,25 @@ function checkSentences() {
             words: [o],
             lastType: "subject",
         }];
-        
-        while (true) {
-            const np = {x: o.p.x + length, y: o.p.y};
-            const objects2 = findEntitiesAt(np);
-            if (objects2.length === 0) break;
+        for (let xv of [1,0]) {
+            while (true) {
+                const np = {x: o.p.x + length * xv, y: o.p.y + length * (1-xv)};
+                const objects2 = findEntitiesAt(np);
+                if (objects2.length === 0) break;
 
-            const nextSent = [];
-            for (const sent of sents) {
-                for (const o2 of objects2) {
-                    const extended = tryNext(sent, o2);
-                    if (extended !== null) nextSent.push(extended);
-                    else nextSent.push(sent);
+                const nextSent = [];
+                for (const sent of sents) {
+                    for (const o2 of objects2) {
+                        const extended = tryNext(sent, o2);
+                        if (extended !== null) nextSent.push(extended);
+                        else nextSent.push(sent);
+                    }
                 }
+
+                sents = [...new Set(nextSent)];
+                length++;
             }
-
-            sents = [...new Set(nextSent)];
-            length++;
         }
-
         allSentences = allSentences.concat(sents);
     }
 
