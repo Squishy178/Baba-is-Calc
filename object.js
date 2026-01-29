@@ -174,8 +174,8 @@ function deleteObject(x, y) {
     objects.splice(found,1);
 }
 
-function writeSentence(sentence, sx, sy) {
+function writeSentence(sentence, sx, sy,vertical = false) {
     sentence.split(' ').map(s=>'text_'+s).forEach(
-        (s, i) => newObject(sx + i, sy, s)
+        (s, i) => newObject(sx + (vertical?0:i), sy + (vertical?i:0), s)
     );
 }
